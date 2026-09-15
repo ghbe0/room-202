@@ -827,7 +827,7 @@
     renderer.setSize(r.width, r.height, false);
     camera.aspect = r.width / r.height;
     // on a narrow screen, back off so the whole room still fits
-    var want = r.width < 620 ? 520 : 408;
+    var want = r.width < 620 ? 430 : 408;
     if(!resize.tuned){ sph.r = want; resize.tuned = true; updateCam(); }
     camera.updateProjectionMatrix();
   }
