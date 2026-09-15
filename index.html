@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="Interactive 3D plan of Room 202 - a 134 by 176 inch bedroom with draggable furniture and four layouts.">
+<meta name="description" content="Interactive 3D plan of Room 202 with draggable furniture and layout options.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Room 202">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -151,7 +151,7 @@
 <header>
   <div class="brand">
     <b>Room 202</b>
-    <span>134&Prime; &times; 176&Prime; &middot; 2 beds &middot; 2 nightstands &middot; 30&times;14&Prime; pier</span>
+    <span>132&Prime; back wall &middot; 108&Prime; main width &middot; 176&Prime; deep &middot; 24&times;32&Prime; alcove</span>
   </div>
   <div class="layouts" id="layouts"></div>
 </header>
@@ -200,20 +200,22 @@
 
      Depth checks out against the measured chain:
         14 pier + 37 bed + 18 nightstand + 80 bed + 27 gap = 176           */
-  var W = 134, D = 176, H = 96;
+  var WM = 108, WW = 132, D = 176, H = 96;   // main width, wide width at the window, depth
+  var CX = WW/2;
+  var ALC = {x0:108, z0:0, x1:132, z1:32};   // right wall steps 24" out for the first 32"
 
   var PIER = {x0:26, z0:0, x1:56, z1:14};            // measured: 30w x 14d, 26" off the left wall
-  var WIN_X0 = 90, WIN_X1 = 120, WIN_SILL = 12, WIN_HEAD = 89;   // 30" x 6'5"
-  var WIN_CLR = {x0:88, z0:0, x1:122, z1:30};
-  var BUILTIN = {x0:0, z0:172, x1:100, z1:176};      // brown closet, full wall up to the hallway
-  var BUILTIN_CLR = {x0:0, z0:149, x1:100, z1:176};  // its doors need this — keep it clear
-  var DOOR = {x0:100, z0:162, x1:134, z1:176};
-  var HALL = {x0:100, z0:176, x1:134, z1:250};
-  var SWING = 24;                                     // depth a closet door needs
+  var WIN_X0 = 80, WIN_X1 = 110, WIN_SILL = 12, WIN_HEAD = 89;   // 30" x 6'5"
+  var WIN_CLR = {x0:80, z0:0, x1:110, z1:30};
+  var BUILTIN = {x0:0, z0:172, x1:76, z1:176};       // brown closet, full wall up to the hallway
+  var BUILTIN_CLR = {x0:0, z0:149, x1:76, z1:176};   // its doors need this
+  var DOOR = {x0:76, z0:162, x1:108, z1:176};
+  var HALL = {x0:76, z0:176, x1:108, z1:250};
+  var SWING = 24;
 
   var SIZE = {
     bed:{x:37,z:80,h:68}, wardrobe:{x:40,z:24,h:93}, nightstand:{x:18,z:18,h:24},
-    desk:{x:48,z:24,h:30}, chair:{x:15,z:15,h:16}
+    desk:{x:40,z:20,h:30}, chair:{x:15,z:15,h:16}
   };
 
   var ITEMS = [
@@ -228,22 +230,19 @@
   ];
 
   var LAYOUTS = [
-    {name:"As photographed",
-     blurb:"The room as it stands. Bed along the back wall, held 14″ off it by the pier; nightstand; second bed down the left wall; then the 27″ gap to the built-in closet. Grey closets on the right.",
-     pos:{bed1:[40,32.5,90], night1:[9,60,0], bed2:[18.5,109,0], night2:[46,78,0],
-          closet1:[122,52,270], closet2:[122,92,270], desk:[122,136,270], chair:[67.5,97.5,0]}},
-    {name:"1 · Closets by the hallway",
-     blurb:"Grey closets slide down to the hallway end, opening up the window half of the right wall. Beds stay where they are; the desk comes off the wall into the middle where there is now room for it.",
-     pos:{bed1:[40,32.5,90], night1:[9,60,0], bed2:[18.5,109,0], night2:[46,78,0],
-          closet1:[122,102,270], closet2:[122,142,270], desk:[62,112,0], chair:[67.5,137.5,0]}},
-    {name:"2 · Beds apart",
-     blurb:"One bed stays on the back wall, the other moves to the right wall, and both grey closets cross to the left. Puts the most distance between the two beds and gives each its own nightstand and wall.",
-     pos:{bed1:[40,32.5,90], night1:[89,41,0], bed2:[115.5,100,0], night2:[88,69,0],
-          closet1:[12,80,90], closet2:[12,120,90], desk:[72,112,0], chair:[62.5,137.5,0]}},
-    {name:"3 · Window end clear",
-     blurb:"Both beds side by side in the lower half, so the whole window end becomes open floor with the desk under the daylight. Most usable space, least separation.",
-     pos:{bed1:[18.5,90,0], bed2:[62.5,90,0], night1:[9,139,0], night2:[53,139,0],
-          closet1:[122,52,270], closet2:[122,92,270], desk:[68,24,90], chair:[97.5,137.5,0]}}
+    {name:"As photographed", hide:["desk"],
+     blurb:"The room as it stands. Bed along the back wall, held 14\u2033 off it by the pier; nightstand; second bed down the left wall; then the 27\u2033 gap to the built-in closet. Both grey closets and the second nightstand on the right. No desk \u2014 there isn't one yet.",
+     pos:{bed1:[40,32.5,90], night1:[9,60,0], bed2:[18.5,109,0],
+          closet1:[96,74,270], closet2:[96,114,270], night2:[93,145,0], chair:[49.5,95.5,0]}},
+    {name:"1 \u00b7 Desk by the built-in",
+     blurb:"Nothing moves except the second nightstand, which goes into the alcove by the window where it costs no floor. The desk drops into the 23\u2033 strip between the left-wall bed and the closet doors, running down to the built-in's clearance line \u2014 the only place in the room a desk actually fits.",
+     pos:{bed1:[40,32.5,90], night1:[9,60,0], bed2:[18.5,109,0],
+          closet1:[96,74,270], closet2:[96,114,270], night2:[119,17,0],
+          desk:[48,128,90], chair:[65.5,141.5,0]}},
+    {name:"2 \u00b7 Beds apart",
+     blurb:"The left-wall bed crosses to the right wall and both grey closets take the left wall instead. Puts real distance between the two beds, and the desk still lands beside the built-in with more elbow room around it.",
+     pos:{bed1:[40,32.5,90], bed2:[89.5,100,0], closet1:[12,80,90], closet2:[12,120,90],
+          night1:[57,69,0], night2:[119,17,0], desk:[58,128,90], chair:[55.5,99.5,0]}}
   ];
 
   /* ============ textures ============ */
@@ -277,7 +276,7 @@
       g.fillRect(Math.floor(Math.random()*w),r*rh,1.5,rh);
     }
     noise(g,w,h,900,0.05);
-  }, W/48, D/48);
+  }, WM/48, D/48);
 
   var texGold = tex(512,512,function(g,w,h){
     var gr=g.createLinearGradient(0,0,0,h);
@@ -296,7 +295,7 @@
     }
     for(var s=0;s<40;s++){ g.fillStyle="rgba(255,250,220,0.035)"; g.fillRect(0,Math.random()*h,w,2+Math.random()*9); }
     noise(g,w,h,700,0.06);
-  }, W/64, H/64);
+  }, D/64, H/64);
 
   var texPlaster = tex(256,256,function(g,w,h){
     g.fillStyle="#E7E3D7"; g.fillRect(0,0,w,h);
@@ -363,7 +362,7 @@
   var sun = new THREE.DirectionalLight(0xfff2da, 0.62); sun.position.set(120,250,-180); scene.add(sun);
   var fill = new THREE.DirectionalLight(0xdde6ff, 0.26); fill.position.set(-180,140,220); scene.add(fill);
 
-  var world = new THREE.Group(); world.position.set(-W/2, 0, -D/2); scene.add(world);
+  var world = new THREE.Group(); world.position.set(-CX, 0, -D/2); scene.add(world);
 
   function mat(t, o){
     o = o || {};
@@ -379,32 +378,32 @@
     return me;
   }
 
-  world.add(boxAt(0,0,W,D,-1,0, mat(texFloor)));
+  world.add(boxAt(0,0,WM,D,-1,0, mat(texFloor)));
+  world.add(boxAt(ALC.x0,ALC.z0,ALC.x1,ALC.z1,-1,0, mat(texFloor)));     // the alcove floor
   world.add(boxAt(HALL.x0,HALL.z0,HALL.x1,HALL.z1,-1,0, mat(texFloor,{color:0xBFB4A2})));
 
   var walls = new THREE.Group(); world.add(walls);
   var T = 4, IN = {side:THREE.BackSide};
   var mGold = mat(texGold,IN), mPale = mat(texPlaster,IN), mPier = mat(texPlaster);
 
-  walls.add(boxAt(-T,0,0,D,0,H,mGold));
-  walls.add(boxAt(0,-T,WIN_X0,0,0,H,mPale));
-  walls.add(boxAt(WIN_X1,-T,W,0,0,H,mPale));
-  walls.add(boxAt(WIN_X0,-T,WIN_X1,0,0,WIN_SILL,mPale));
-  walls.add(boxAt(WIN_X0,-T,WIN_X1,0,WIN_HEAD,H,mPale));
-  walls.add(boxAt(W,0,W+T,HALL.z1,0,H,mPale));
-  walls.add(boxAt(BUILTIN.x1,D,HALL.x0,D+T,0,H,mPale));
-  walls.add(boxAt(HALL.x0-T,D,HALL.x0,HALL.z1,0,H,mPale));
-  walls.add(boxAt(HALL.x0,HALL.z1,W,HALL.z1+T,0,H,mPale));
-  walls.add(boxAt(PIER.x0,PIER.z0,PIER.x1,PIER.z1,0,H,mPier));
+  walls.add(boxAt(-T,0,0,D,0,H,mGold));                        // left wall, gold paper
+  walls.add(boxAt(0,-T,WIN_X0,0,0,H,mPale));                   // back wall, left of the window
+  walls.add(boxAt(WIN_X1,-T,WW,0,0,H,mPale));                  // back wall, right of the window
+  walls.add(boxAt(WIN_X0,-T,WIN_X1,0,0,WIN_SILL,mPale));       // under the window
+  walls.add(boxAt(WIN_X0,-T,WIN_X1,0,WIN_HEAD,H,mPale));       // over the window
+  walls.add(boxAt(WW,0,WW+T,ALC.z1,0,H,mPale));                // far side of the alcove
+  walls.add(boxAt(WM,ALC.z1,WW+T,ALC.z1+T,0,H,mPale));         // the step back in
+  walls.add(boxAt(WM,ALC.z1,WM+T,HALL.z1,0,H,mPale));          // right wall, main run
+  walls.add(boxAt(HALL.x0-T,D,HALL.x0,HALL.z1,0,H,mPale));     // hallway left wall
+  walls.add(boxAt(HALL.x0,HALL.z1,WM,HALL.z1+T,0,H,mPale));    // hallway far end
+  walls.add(boxAt(PIER.x0,PIER.z0,PIER.x1,PIER.z1,0,H,mPier)); // the pier
 
-  // built-in brown closet: flush in the entry wall, running the full width to the hallway
   var mBeech = mat(texBeech);
   walls.add(boxAt(BUILTIN.x0,BUILTIN.z0,BUILTIN.x1,BUILTIN.z1,0,H,mBeech));
   var seamMat = mat(null,{color:0x74491F});
-  for(var dx = 25; dx < BUILTIN.x1; dx += 25){
+  for(var dx = 19; dx < BUILTIN.x1; dx += 19){
     walls.add(boxAt(dx-0.5,BUILTIN.z0-0.6,dx+0.5,BUILTIN.z0,0,H,seamMat));
   }
-
   walls.add(boxAt(WIN_X0,-T+1.2,WIN_X1,-T+2.4,WIN_SILL,WIN_HEAD, mat(null,{color:0xA9C6D2,op:0.38})));
 
   /* ---- floor keep-clear markings ---- */
@@ -413,9 +412,9 @@
   world.add(boxAt(BUILTIN_CLR.x0,BUILTIN_CLR.z0,BUILTIN_CLR.x1,BUILTIN_CLR.z1,0.2,0.5,mClear));
   world.add(boxAt(DOOR.x0,DOOR.z0,DOOR.x1,DOOR.z1,0.2,0.4, mat(null,{color:0x6E7360, op:0.14})));
 
-  var grid = new THREE.GridHelper(Math.max(W,D), Math.round(Math.max(W,D)/12), 0x9aa08c, 0x9aa08c);
+  var grid = new THREE.GridHelper(Math.max(WW,D), Math.round(Math.max(WW,D)/12), 0x9aa08c, 0x9aa08c);
   grid.material.opacity = 0.14; grid.material.transparent = true;
-  grid.position.set(W/2, 0.05, D/2); world.add(grid);
+  grid.position.set(CX, 0.05, D/2); world.add(grid);
 
   /* ============ furniture ============ */
   var mSteel = mat(null,{color:0x2A2B2E}), mClothM = mat(texCloth), mGreyM = mat(texGrey),
@@ -527,16 +526,23 @@
     return Math.min(a.x1,b.x1) - Math.max(a.x0,b.x0) > 0.5 &&
            Math.min(a.z1,b.z1) - Math.max(a.z0,b.z0) > 0.5;
   }
-  function inBounds(f){ return f.x0 >= -0.5 && f.z0 >= -0.5 && f.x1 <= W+0.5 && f.z1 <= D+0.5; }
+  function inBounds(f){
+    if(f.x0 < -0.5 || f.z0 < -0.5 || f.z1 > D+0.5) return false;
+    if(f.x1 <= WM+0.5) return true;
+    return f.z1 <= ALC.z1+0.5 && f.x1 <= WW+0.5;   // may reach right only inside the alcove
+  }
   function clamp(it, cx, cz, rot){
     var s = SIZE[it.kind], sx = s.x, sz = s.z;
     if(rot === 90 || rot === 270){ sx = s.z; sz = s.x; }
-    return [Math.max(sx/2, Math.min(W-sx/2, cx)), Math.max(sz/2, Math.min(D-sz/2, cz))];
+    cz = Math.max(sz/2, Math.min(D - sz/2, cz));
+    var maxX = (cz + sz/2 <= ALC.z1 + 0.5) ? WW - sx/2 : WM - sx/2;
+    return [Math.max(sx/2, Math.min(maxX, cx)), cz];
   }
 
   var selected = null;
   function evaluate(){
-    var fps = ITEMS.map(function(it){ return {it:it, f:footprint(it,it.cx,it.cz,it.rot)}; });
+    var live = ITEMS.filter(function(it){ return !it.hidden; });
+    var fps = live.map(function(it){ return {it:it, f:footprint(it,it.cx,it.cz,it.rot)}; });
     var bad = {}, msgs = {};
     fps.forEach(function(a){
       if(!inBounds(a.f)) bad[a.it.id] = true;
@@ -545,7 +551,7 @@
       if(ov(a.f, DOOR)){ bad[a.it.id] = true; msgs["Doorway blocked"] = 1; }
       if(ov(a.f, BUILTIN_CLR)){ bad[a.it.id] = true; msgs["Blocking the built-in closet"] = 1; }
     });
-    ITEMS.forEach(function(w){                  // nothing may sit in a grey closet's door swing
+    live.forEach(function(w){                   // nothing may sit in a grey closet's door swing
       if(w.kind !== "wardrobe") return;
       var sw = swingOf(w);
       fps.forEach(function(a){
@@ -556,7 +562,7 @@
     for(var i=0;i<fps.length;i++) for(var j=i+1;j<fps.length;j++)
       if(ov(fps[i].f, fps[j].f)){ bad[fps[i].it.id] = true; bad[fps[j].it.id] = true; }
 
-    ITEMS.forEach(function(it){
+    live.forEach(function(it){
       var tint = bad[it.id] ? matClash : (selected === it ? matSel : null);
       it.baseMats.forEach(function(pr){ pr[0].material = tint || pr[1]; });
     });
@@ -589,6 +595,11 @@
     Array.prototype.forEach.call(document.querySelectorAll(".lay"), function(b,i){
       b.setAttribute("aria-pressed", i === idx ? "true" : "false");
     });
+    ITEMS.forEach(function(it){
+      it.hidden = !!(L.hide && L.hide.indexOf(it.id) >= 0);
+      it.node.visible = !it.hidden;
+    });
+    if(selected && selected.hidden) selected = null;
     var from = ITEMS.map(function(it){ return [it.cx, it.cz, it.rot]; });
     var to = ITEMS.map(function(it){ var p = L.pos[it.id]; return p ? [p[0],p[1],p[2]] : [it.cx,it.cz,it.rot]; });
     if(instant || matchMedia("(prefers-reduced-motion: reduce)").matches){
@@ -644,11 +655,11 @@
     toNdc(px,py); ray.setFromCamera(ndc,camera);
     var p = new THREE.Vector3();
     if(!ray.ray.intersectPlane(plane,p)) return null;
-    return {x:p.x + W/2, z:p.z + D/2};
+    return {x:p.x + CX, z:p.z + D/2};
   }
   function itemHit(px,py){
     toNdc(px,py); ray.setFromCamera(ndc,camera);
-    var hits = ray.intersectObjects(picks,false);
+    var hits = ray.intersectObjects(picks.filter(function(m){ return !m.userData.owner.hidden; }), false);
     return hits.length ? hits[0].object.userData.owner : null;
   }
   function panBy(dx,dy){
